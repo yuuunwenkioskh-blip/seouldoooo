@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首爾 do 臉｜動態行程表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #fff9f9; }
+        .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(15px); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="text-slate-700">
+
+    <header class="p-8 pt-12 text-center">
+        <h1 class="text-4xl font-black text-rose-500">首爾 do 臉</h1>
+        <p class="text-slate-400 text-sm tracking-widest mt-2">可編輯動態行程版</p>
+    </header>
+
+    <nav class="sticky top-0 z-50 glass-nav border-b border-rose-50 px-4 shadow-sm">
+        <div class="flex justify-around max-w-md mx-auto py-3">
+            <button onclick="showTab('itinerary')" class="nav-btn text-rose-500 font-bold px-4 text-sm">行程動線</button>
+            <button onclick="showTab('add')" class="nav-btn text-slate-400 px-4 text-sm font-bold">➕ 新增景點</button>
+        </div>
+    </nav>
+
+    <main class="max-w-md mx-auto p-6 pb-32">
+        <!-- 行程顯示區 -->
+        <section id="itinerary" class="tab-content active space-y-6">
+            <div id="itineraryList" class="space-y-4">
+                <!-- 初始預設行程 -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-rose-50">
+                    <p class="text-xs text-rose-400 font-bold">5/18 (一)</p>
+                    <h4 class="font-bold">酷航 TR872 抵達仁川</h4>
+                </div>
+            </div>
+        </section>
+
+        <!-- 新增景點區 -->
+        <section id="add" class="tab-content space-y-4">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-rose-100">
+                <h3 class="font-bold mb-4">新增自定義行程</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400">日期</label>
+                        <input type="text" id="newDate" placeholder="例如：5/20" class="w-full border-b py-2 outline-none focus:border-rose-300">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-400">景點名稱</label>
+                        <input type="text" id="newName" placeholder="例如：聖水洞皮克敏種花" class="w-full border-b py-2 outline-none focus:border-rose-300">
+                    </div>
+                    <button onclick="saveItem()" class="w-full bg-rose-500 text-white py-3 rounded-2xl font-bold shadow-lg shadow-rose-100">確認新增</button>
+                </div>
+            </div>
+            <button onclick="clearStorage()" class="w-full text-xs text-slate-300 underline mt-10">清空所有自訂行程</button>
+        </section>
+    </main>
+
+    <script>
+        // 切換頁籤
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.replace('text-rose-500', 'text-slate-400'));
+            event.currentTarget.classList.replace('text-slate-400', 'text-rose-500');
+        }
+
+        // 儲存到 LocalStorage
+        function saveItem() {
+            const date = document.getElementById('newDate').value;
+            const name = document.getElementById('newName').value;
+            
+            if (!date || !name) return alert('請填寫完整資訊！');
+
+            const newItem = { date, name };
+            let items = JSON.parse(localStorage.getItem('mySeoulTrip')) || [];
+            items.push(newItem);
+            localStorage.setItem('mySeoulTrip', JSON.stringify(items));
+            
+            alert('新增成功！');
+            document.getElementById('newDate').value = '';
+            document.getElementById('newName').value = '';
+            loadItems();
+            showTab('itinerary');
+        }
+
+        // 讀取並顯示行程
+        function loadItems() {
+            const list = document.getElementById('itineraryList');
+            const items = JSON.parse(localStorage.getItem('mySeoulTrip')) || [];
+            
+            // 保留預設內容，附加新內容
+            let html = `
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-rose-50">
+                    <p class="text-xs text-rose-400 font-bold">5/18 (一)</p>
+                    <h4 class="font-bold">酷航 TR872 抵達仁川</h4>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-rose-50">
+                    <p class="text-xs text-rose-400 font-bold">5/22 (五)</p>
+                    <h4 class="font-bold text-rose-600">水原 do 臉預約 💉</h4>
+                </div>
+            `;
+            
+            items.forEach(item => {
+                html += `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-indigo-50 border-l-4 border-l-indigo-300">
+                        <p class="text-xs text-indigo-400 font-bold">${item.date}</p>
+                        <h4 class="font-bold">${item.name}</h4>
+                    </div>
+                `;
+            });
+            list.innerHTML = html;
+        }
+
+        function clearStorage() {
+            if(confirm('確定要清空你自己新增的行程嗎？')) {
+                localStorage.removeItem('mySeoulTrip');
+                loadItems();
+            }
+        }
+
+        // 初始載入
+        window.onload = loadItems;
+    </script>
+</body>
+</html>
